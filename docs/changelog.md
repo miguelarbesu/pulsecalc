@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 (2022-03-25)
+
+### Feat
+
+- cli interface for reference pulse setting
+
 ## 0.1.1 (2022-03-25)
 
 ### Refactor
