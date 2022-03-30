@@ -12,3 +12,6 @@ import pytest
 def test_pulsecalc_imported():
     """Sample test, will always pass so long as import statement worked"""
     assert "pulsecalc" in sys.modules
+
+
+# TODO: Add tests for the core module
