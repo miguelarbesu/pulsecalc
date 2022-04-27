@@ -5,8 +5,21 @@
 from pathlib import Path
 
 import click
+import numpy as np
 
 channels = ["1H", "13C", "15N"]
+hh_conditions = {
+    "5": 5.0,
+    "9/2": 4.5,
+    "4": 4.0,
+    "7/2": 3.5,
+    "3": 3.0,
+    "5/2": 2.5,
+    "2": 2.0,
+    "3/2": 1.5,
+    "1": 1.0,
+    "1/2": 0.5,
+}
 
 
 def get_reference_table():
@@ -33,6 +46,54 @@ def calculate_frequency(pulse_length):
     """
     pulse_frequency = 1e3 / (pulse_length * 4)
     return pulse_frequency
+
+
+def get_reference_pulse(channel):
+    """Get a reference pulse definition
+
+    Args:
+        channel (str): Channel name. Must be one of the following: 1H, 13C, 15N.
+
+    Returns:
+        pulse_length (float): Pulse length in μs
+        pulse_power (float): Pulse power in W
+        pulse_frequency (float): Pulse frequency in kHz
+    """
+    # read the table
+    reference_table = Path.cwd() / "reference_pulses.csv"
+    if not reference_table.is_file():
+        click.echo("The reference pulse table does not exist")
+        return
+    with reference_table.open() as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith(channel):
+                channel, pulse_length, pulse_power, pulse_frequency = line.split("\t")
+                # make all float
+                pulse_length = float(pulse_length)
+                pulse_power = float(pulse_power)
+                pulse_frequency = float(pulse_frequency)
+                return pulse_length, pulse_power, pulse_frequency
+    return
+
+
+def calculate_power(reference_frequency, reference_power, new_frequency):
+    """Calculate the power of a pulse in W from its frequency and the reference frequency and power
+
+    Args:
+        reference_frequency (float): Reference frequency in kHz
+        reference_power (float): Reference power in W
+        new_frequency (float): New frequency in kHz
+
+    Returns:
+        new_power (float): New power in W
+    """
+    reference_attenuation = -10.0 * np.log10(reference_power)
+    new_attenuation = reference_attenuation - 20.0 * np.log10(
+        new_frequency / reference_frequency
+    )
+    new_power = 10.0 ** (-new_attenuation / 10.0)
+    return new_power
 
 
 def create_reference_table():

@@ -81,5 +81,44 @@ def update():
     )
 
 
+@main.command()
+# request mas frequency
+def hh():
+    """Calculate typical Hartmann-Hahn conditions for Cross Polarization
+    at a given MAS frequency based on the reference pulses.
+    Conditions are given in kHz and as a fraction of the MAS frequency.
+    Powers are given in W.
+    """
+
+    mas = click.prompt("What is the MAS frequency in kHz?", type=float)
+
+    rich_table = Table(
+        title=f"Hartmann-Hanh frequencies @ {mas} kHz (as n*MAS)",
+        row_styles=["yellow", "blue", "red"],
+    )
+    rich_table.add_column("Channel", style="bold")
+    hh_frequency_list = []
+
+    for condition, ratio in core.hh_conditions.items():
+        rich_table.add_column(condition, justify="center")
+        hh_frequency_list.append(ratio * mas)
+
+    for channel in core.channels:
+        try:
+            _, reference_power, reference_frequency = core.get_reference_pulse(channel)
+        except TypeError:
+            click.echo(f"No reference pulse defined for {channel}")
+            continue
+        hh_power_list = []
+        for hh_frequency in hh_frequency_list:
+            hh_power_list.append(
+                core.calculate_power(reference_frequency, reference_power, hh_frequency)
+            )
+        hh_power_list = ["{:.2f}".format(power) for power in hh_power_list]
+        rich_table.add_row(channel, *hh_power_list)
+    rprint(rich_table)
+    return
+
+
 if __name__ == "__main__":
     main()
