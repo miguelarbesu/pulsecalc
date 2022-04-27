@@ -111,4 +111,8 @@ ipython_config.py
 /src/external/
 
 # exclude VS Code files
-.vscode/
+.vscode/style="normal"
+
+# specific of this project 
+reference_pulses.csv
+.vscode/settings.json
