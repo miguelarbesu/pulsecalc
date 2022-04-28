@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 (2022-04-28)
+
+### Fix
+
+- all commands check if reference table exists
+
 ## 0.4.0 (2022-04-27)
 
 ### Feat
