@@ -30,9 +30,12 @@ def get_reference_table():
     """
     reference_table = Path.cwd() / "reference_pulses.csv"
     if not reference_table.is_file():
-        click.echo("The reference pulse table does not exist")
-        return
-    return reference_table
+        click.echo(
+            "The reference pulse table does not exist.\nPlease run pulsecalc init to create it."
+        )
+        raise FileNotFoundError
+    else:
+        return reference_table
 
 
 def calculate_frequency(pulse_length):
@@ -60,7 +63,7 @@ def get_reference_pulse(channel):
         pulse_frequency (float): Pulse frequency in kHz
     """
     # read the table
-    reference_table = Path.cwd() / "reference_pulses.csv"
+    reference_table = get_reference_table()
     if not reference_table.is_file():
         click.echo("The reference pulse table does not exist")
         return
@@ -113,7 +116,7 @@ def create_reference_table():
 
 def reset_reference_table():
     """Reset the reference pulse table"""
-    reference_table = Path.cwd() / "reference_pulses.csv"
+    reference_table = get_reference_table()
     if not reference_table.is_file():
         click.echo("The reference pulse table does not exist")
         return
@@ -137,7 +140,7 @@ def set_reference_pulse(channel, pulse_length, pulse_power, pulse_frequency):
         pulse_frequency (float): Pulse frequency in kHz
     """
     # read the table
-    reference_table = Path.cwd() / "reference_pulses.csv"
+    reference_table = get_reference_table()
     # update the line for the given channel
     new_line = (
         f"{channel}\t{pulse_length:.2f}\t{pulse_power:.2f}\t{pulse_frequency:.2f}\n"

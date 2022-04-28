@@ -31,8 +31,11 @@ def init():
 
 @main.command()
 def show():
+    try:
+        reference_table = core.get_reference_table()
+    except FileNotFoundError:
+        return
     """Show the reference pulse definitions"""
-    reference_table = core.get_reference_table()
 
     rich_table = Table(title="Reference pulses", row_styles=["yellow", "blue", "red"])
     rich_table.add_column("Channel", style="bold")
@@ -61,12 +64,20 @@ def show():
 @main.command()
 def reset():
     """Reset the reference pulse definitions and/or calculations"""
+    try:
+        core.get_reference_table()
+    except FileNotFoundError:
+        return
     core.reset_reference_table()
 
 
 @main.command()
 def update():
     """Update a given reference pulse definition"""
+    try:
+        core.get_reference_table()
+    except FileNotFoundError:
+        return
     channel = click.prompt(
         "Which channel do you want to update?",
         show_choices=True,
@@ -89,6 +100,10 @@ def hh():
     Conditions are given in kHz and as a fraction of the MAS frequency.
     Powers are given in W.
     """
+    try:
+        core.get_reference_table()
+    except FileNotFoundError:
+        return
 
     mas = click.prompt("What is the MAS frequency in kHz?", type=float)
 
