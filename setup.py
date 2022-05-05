@@ -4,6 +4,7 @@
 A CLI for calculating RF pulse powers in NMR.
 """
 
+import pathlib
 import sys
 from glob import glob
 from os.path import basename, splitext
@@ -38,15 +39,19 @@ setup(
     license="MIT",
     setup_requires=[] + pytest_runner,
     install_requires=[
+        "rich",
+        "numpy",
+        "click",
+        "pathlib"
         # Basic libs
-        "matplotlib>3",
-        "pandas>1",
-        "jupyter",
+        # "matplotlib>3",
+        # "pandas>1",
+        # "jupyter",
         # Extra - uncomment to use or add more
         # "scikit-learn",
         # "scikit-image",
         # "seaborn",
         # "pymc3"
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.6",
 )
