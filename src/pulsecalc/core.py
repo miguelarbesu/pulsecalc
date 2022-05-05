@@ -38,7 +38,7 @@ def get_reference_table():
         return reference_table
 
 
-def calculate_frequency(pulse_length):
+def calculate_frequency_from_length(pulse_length):
     """Calculate the frequency of a pulse in kHz from its length in μs
 
     Args:
@@ -51,36 +51,41 @@ def calculate_frequency(pulse_length):
     return pulse_frequency
 
 
-def get_reference_pulse(channel):
-    """Get a reference pulse definition
+def calculate_length_from_frequency(pulse_frequency):
+    """Calculate the length of a pulse in μs from its frequency in kHz
 
     Args:
-        channel (str): Channel name. Must be one of the following: 1H, 13C, 15N.
+        pulse_frequency (float): Pulse frequency in kHz
 
     Returns:
-        pulse_length (float): Pulse length in μs
-        pulse_power (float): Pulse power in W
-        pulse_frequency (float): Pulse frequency in kHz
+        pulse_length: Pulse length in μs
     """
-    # read the table
-    reference_table = get_reference_table()
-    if not reference_table.is_file():
-        click.echo("The reference pulse table does not exist")
-        return
-    with reference_table.open() as f:
-        lines = f.readlines()
-        for line in lines:
-            if line.startswith(channel):
-                channel, pulse_length, pulse_power, pulse_frequency = line.split("\t")
-                # make all float
-                pulse_length = float(pulse_length)
-                pulse_power = float(pulse_power)
-                pulse_frequency = float(pulse_frequency)
-                return pulse_length, pulse_power, pulse_frequency
-    return
+    pulse_length = 1e3 / (pulse_frequency * 4)
+    return pulse_length
 
 
-def calculate_power(reference_frequency, reference_power, new_frequency):
+def calculate_frequency_from_power(reference_frequency, reference_power, new_power):
+    """Calculate the frequency of a pulse in kHz from its power and the reference frequency and power
+
+    Args:
+        reference_frequency (float): Reference frequency in kHz
+        reference_power (float): Reference power in W
+        new_power (float): New power in W
+
+    Returns:
+        new_frequency (float): New frequency in kHz
+    """
+    reference_length = calculate_length_from_frequency(reference_frequency)
+    reference_attenuation = -10 * np.log10(reference_power)
+    new_attenuation = -10 * np.log10(new_power)
+    new_length = reference_length * 10 ** (
+        (new_attenuation - reference_attenuation) / 20
+    )
+    new_frequency = calculate_frequency_from_length(new_length)
+    return new_frequency
+
+
+def calculate_power_from_frequency(reference_frequency, reference_power, new_frequency):
     """Calculate the power of a pulse in W from its frequency and the reference frequency and power
 
     Args:
@@ -92,8 +97,10 @@ def calculate_power(reference_frequency, reference_power, new_frequency):
         new_power (float): New power in W
     """
     reference_attenuation = -10.0 * np.log10(reference_power)
+    reference_length = calculate_length_from_frequency(reference_frequency)
+    new_length = calculate_length_from_frequency(new_frequency)
     new_attenuation = reference_attenuation - 20.0 * np.log10(
-        new_frequency / reference_frequency
+        reference_length / new_length
     )
     new_power = 10.0 ** (-new_attenuation / 10.0)
     return new_power
@@ -156,3 +163,31 @@ def set_reference_pulse(channel, pulse_length, pulse_power, pulse_frequency):
         f.seek(0)
         f.writelines(lines)
     return
+
+
+def get_reference_pulse(channel):
+    """Get a reference pulse definition
+
+    Args:
+        channel (str): Channel name. Must be one of the following: 1H, 13C, 15N.
+
+    Returns:
+        pulse_length (float): Pulse length in μs
+        pulse_power (float): Pulse power in W
+        pulse_frequency (float): Pulse frequency in kHz
+    """
+    # read the table
+    reference_table = get_reference_table()
+    if not reference_table.is_file():
+        click.echo("The reference pulse table does not exist")
+        return
+    with reference_table.open() as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith(channel):
+                channel, pulse_length, pulse_power, pulse_frequency = line.split("\t")
+                # make all float
+                pulse_length = float(pulse_length)
+                pulse_power = float(pulse_power)
+                pulse_frequency = float(pulse_frequency)
+                return pulse_length, pulse_power, pulse_frequency

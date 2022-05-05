@@ -25,17 +25,17 @@ def init():
         pulse_power = click.prompt(
             f"Enter {channel} reference pulse power in W", type=float
         )
-        pulse_frequency = core.calculate_frequency(pulse_length)
+        pulse_frequency = core.calculate_frequency_from_length(pulse_length)
         core.set_reference_pulse(channel, pulse_length, pulse_power, pulse_frequency)
 
 
 @main.command()
 def show():
+    """Show the reference pulse definitions"""
     try:
         reference_table = core.get_reference_table()
     except FileNotFoundError:
         return
-    """Show the reference pulse definitions"""
 
     rich_table = Table(title="Reference pulses", row_styles=["yellow", "blue", "red"])
     rich_table.add_column("Channel", style="bold")
@@ -47,7 +47,7 @@ def show():
 
     with open(reference_table, "r") as f:
         # skip header
-        lines = f.readlines()[1:]
+        lines = f.readlines()[1:4]
         for line in lines:
             channel, pulse_length, pulse_power, pulse_frequency = line.split("\t")
             rich_table.add_row(
@@ -85,7 +85,7 @@ def update():
     )
     pulse_length = click.prompt("What is the reference pulse length in μs?", type=float)
     pulse_power = click.prompt("What is the reference pulse power in W?", type=float)
-    pulse_frequency = core.calculate_frequency(pulse_length)
+    pulse_frequency = core.calculate_frequency_from_length(pulse_length)
     core.set_reference_pulse(channel, pulse_length, pulse_power, pulse_frequency)
     click.echo(
         f"{channel} reference pulse updated: {pulse_length:.2f} μs @ {pulse_power:.2f} W == {pulse_frequency:.2f} kHz"
@@ -93,7 +93,6 @@ def update():
 
 
 @main.command()
-# request mas frequency
 def hh():
     """Calculate typical Hartmann-Hahn conditions for Cross Polarization
     at a given MAS frequency based on the reference pulses.
@@ -127,12 +126,94 @@ def hh():
         hh_power_list = []
         for hh_frequency in hh_frequency_list:
             hh_power_list.append(
-                core.calculate_power(reference_frequency, reference_power, hh_frequency)
+                core.calculate_power_from_frequency(
+                    reference_frequency, reference_power, hh_frequency
+                )
             )
         hh_power_list = ["{:.2f}".format(power) for power in hh_power_list]
         rich_table.add_row(channel, *hh_power_list)
     rprint(rich_table)
     return
+
+
+@main.command()
+def freq():
+    """Calculate the frequency of a given pulse given a new power or length, based on the reference pulses"""
+    try:
+        core.get_reference_table()
+    except FileNotFoundError:
+        return
+    channel = click.prompt(
+        "Which channel do you want to calculate the frequency for?",
+        show_choices=True,
+        type=click.Choice(["1H", "13C", "15N"], case_sensitive=False),
+    )
+    reference_length, reference_power, reference_frequency = core.get_reference_pulse(
+        channel
+    )
+
+    unit = click.prompt(
+        "Calculate from (l)ength or (p)ower?",
+        show_choices=True,
+        type=click.Choice(["l", "p"]),
+    )
+    if unit == "l":
+        new_length = click.prompt("What is the pulse length in μs?", type=float)
+        new_frequency = core.calculate_frequency_from_length(new_length)
+        new_power = core.calculate_power_from_frequency(
+            reference_frequency, reference_power, new_frequency
+        )
+        click.echo(
+            f"{new_length:.2f} μs @ {reference_power:.2f} W == {new_frequency:.2f} kHz"
+        )
+    elif unit == "p":
+        new_power = click.prompt("What is the pulse power in W?", type=float)
+        new_frequency = core.calculate_frequency_from_power(
+            reference_frequency, reference_power, new_power
+        )
+        click.echo(
+            f"{reference_length:.2f} μs @ {new_power:.2f} W == {new_frequency:.2f} kHz"
+        )
+
+
+@main.command()
+def power():
+    """Calculate the power of a given pulse given a new length or frequency, based on the reference pulses"""
+    try:
+        core.get_reference_table()
+    except FileNotFoundError:
+        return
+    channel = click.prompt(
+        "Which channel do you want to calculate the power for?",
+        show_choices=True,
+        type=click.Choice(["1H", "13C", "15N"], case_sensitive=False),
+    )
+    reference_length, reference_power, reference_frequency = core.get_reference_pulse(
+        channel
+    )
+
+    unit = click.prompt(
+        "Calculate from (l)ength or (f)requency?",
+        show_choices=True,
+        type=click.Choice(["l", "f"]),
+    )
+    if unit == "l":
+        new_length = click.prompt("What is the pulse length in μs?", type=float)
+        new_frequency = core.calculate_frequency_from_length(new_length)
+        new_power = core.calculate_power_from_frequency(
+            reference_frequency, reference_power, new_frequency
+        )
+        click.echo(
+            f"{new_length:.2f} μs @ {new_power:.2f} W == {reference_frequency:.2f} kHz"
+        )
+    elif unit == "f":
+        new_frequency = click.prompt("What is the pulse frequency in kHz?", type=float)
+        new_power = core.calculate_power_from_frequency(
+            reference_frequency, reference_power, new_frequency
+        )
+        click.echo(
+            f"{reference_length:.2f} μs @ {new_power:.2f} W == {new_frequency:.2f} kHz"
+        )
 
 
 if __name__ == "__main__":
