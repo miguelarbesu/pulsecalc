@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 (2022-05-05)
+
+### Feat
+
+- add frequency calculation
+
 ## 0.4.1 (2022-04-28)
 
 ### Fix
