@@ -12,7 +12,7 @@
 
 A CLI for calculating RF pulse powers in NMR.
 
-Full documentation at [this website](https:miguelarbesu.github.io/pulsecalc)
+Full documentation at [this website](https://miguelarbesu.github.io/pulsecalc)
 
 ## Copyright
 
