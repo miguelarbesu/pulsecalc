@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""A module template
+"""The core module of the pulsecalc package.
 """
 from pathlib import Path
 

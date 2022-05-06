@@ -1,4 +1,4 @@
-"""CLI interface
+"""CLI interface for pulsecalc."""
 """
 
 import click
