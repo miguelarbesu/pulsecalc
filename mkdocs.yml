@@ -13,5 +13,5 @@ theme:
 plugins:
   - search
   - mkdocstrings:
-    watch:
-      - src/pulsecalc
+      watch:
+        - src/pulsecalc
