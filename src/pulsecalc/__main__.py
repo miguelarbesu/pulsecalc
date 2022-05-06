@@ -1,6 +1,3 @@
-"""CLI interface for pulsecalc."""
-"""
-
 import click
 from pulsecalc import core
 from rich import print as rprint
