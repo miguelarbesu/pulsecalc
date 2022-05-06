@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 (2022-05-06)
+
+### Refactor
+
+- **__main__.py**: remove description string
+
 ## 0.5.0 (2022-05-05)
 
 ### Feat
