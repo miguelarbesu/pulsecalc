@@ -1,3 +1,3 @@
 # Code reference
 
-::: pulsecalc.core
+::: src.pulsecalc.core
